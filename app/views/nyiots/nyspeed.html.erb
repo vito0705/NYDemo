@@ -14,7 +14,7 @@
 <div id="current" style="display: inline-block;width: 800px;height:600px;"></div>
 
     <script type="text/javascript">
-
+        var line_id;
         var speed_chart = echarts.init(document.getElementById('current'));
 
         speed_chart.showLoading({
@@ -23,6 +23,18 @@
         speed_chart.hideLoading();
         var x_time_value = [];
         var y_speed_value = [];
+
+        function get_current_spped(){
+            $.get('nyiots/get_current_speed', {"name": "<%= @name_speed %>", "gps1": "<%= @gps1%>" , "gps2": "<%= @gps2%>"}).done(function (point_data){
+                x_time_value.shift();
+                x_time_value.push(point_data["real_time"][0]);
+                //              alert(point_data["real_time"][1]);
+                y_speed_value.shift();
+                y_speed_value.push(point_data["real_time"][1])
+            });
+            speed_chart.setOption(speed_option)
+        }
+
         $.get('nyiots/get_history_speed', {"name": "<%= @name_speed %>", "gps1": "<%= @gps1%>" , "gps2": "<%= @gps2%>"}).done(function (point_data) {
             p_value = point_data["data"];
     //        p_date = point_data["time"].replace(/-/g,"/");
@@ -106,17 +118,17 @@
             };
                 speed_chart.setOption(speed_option);
 
-            function get_current_spped(){
-              $.get('nyiots/get_current_speed', {"name": "<%= @name_speed %>", "gps1": "<%= @gps1%>" , "gps2": "<%= @gps2%>"}).done(function (point_data){
-                  x_time_value.shift();
-                  x_time_value.push(point_data["real_time"][0]);
-    //              alert(point_data["real_time"][1]);
-                  y_speed_value.shift();
-                  y_speed_value.push(point_data["real_time"][1])
-              });
-                speed_chart.setOption(speed_option)
-            }
-            setInterval(get_current_spped,1000)
+//            function get_current_spped(){
+//              $.get('nyiots/get_current_speed', {"name": "<%= @name_speed %>", "gps1": "<%= @gps1%>" , "gps2": "<%= @gps2%>"}).done(function (point_data){
+//                  x_time_value.shift();
+//                  x_time_value.push(point_data["real_time"][0]);
+//    //              alert(point_data["real_time"][1]);
+//                  y_speed_value.shift();
+//                  y_speed_value.push(point_data["real_time"][1])
+//              });
+//                speed_chart.setOption(speed_option)
+//            }
+            line_id = setInterval(get_current_spped,1000)
         })
 
     </script>
@@ -124,7 +136,7 @@
 <!--&lt;!&ndash;-->
 <div id="main" style="display: inline-block; width: 800px;height:600px;"></div>
     <script type="text/javascript">
-
+        var gauge_id;
         var value_chart = echarts.init(document.getElementById('main'));
 
         value_chart.showLoading({
@@ -167,10 +179,29 @@
             value_chart.setOption(value_option)
         }
 
-        setInterval(get_current_value,1000)
+        gauge_id = setInterval(get_current_value,1000)
 
     </script>
 <!--&ndash;&gt;-->
+<div id="maininterval" style="display: inline-block; width: 50px;height:10px;">
+  <button type="button" id="interval" >暂停</button>
+  <button type="button" id="begin" >开始</button>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#interval").click(function () {
+           clearInterval(line_id);
+           clearInterval(gauge_id)
+        });
+
+        $("#begin").click(function () {
+            line_id = setInterval(get_current_spped,1000);
+            gauge_id = setInterval(get_current_value, 1000)
+        });
+    });
+//    setInterval(get_current_value,1000)
+
+</script>
 
 </body>
 </html>
